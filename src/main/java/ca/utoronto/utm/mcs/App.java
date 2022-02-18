@@ -10,11 +10,10 @@ public class App
         // Create Your Server Context Here, There Should Only Be One Context
         Server server = DaggerServerComponent.create().buildServer();
         ReqHandler reqHandler = DaggerReqHandlerComponent.create().buildHandler();
-        server.server.createContext("/api/v1", reqHandler);
+        server.server.createContext("/api/v1/", reqHandler);
 
         server.server.start();
 
-//        reqHandler.neo4jDAO.insertPokemon("Michael", "Humanbeing", "Fire", "Ice", "Old");
         System.out.printf("Server started on port %d\n", port);
     }
 }
