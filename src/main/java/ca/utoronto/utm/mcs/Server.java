@@ -7,7 +7,6 @@ import javax.inject.Singleton;
 
 @Singleton
 public class Server {
-    // TODO Complete This Class
 
     public HttpServer server;
 
