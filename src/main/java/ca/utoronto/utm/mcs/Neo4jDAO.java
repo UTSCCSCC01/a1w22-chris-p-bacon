@@ -2,9 +2,7 @@ package ca.utoronto.utm.mcs;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
+import org.neo4j.driver.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -25,7 +23,7 @@ public class Neo4jDAO {
     public int insertActor(String actorId, String name) {
         try {
             Session curSession = this.driver.session();
-            String query = "MATCH(a:actor) WHERE a.id=\"%s\" RETURN a".formatted(actorId);
+            String query = "MATCH(a:actor) WHERE a.actorId=\"%s\" RETURN a".formatted(actorId);
             Result res = curSession.run(query);
             if(res.hasNext()){
                 // actorId already exists
@@ -33,7 +31,7 @@ public class Neo4jDAO {
             }
             else {
                 // insert the actor
-                curSession.run("Create (a:actor {Name: \"%s\", id: \"%s\"})".formatted(name, actorId));
+                curSession.run("Create (a:actor {name: \"%s\", actorId: \"%s\"})".formatted(name, actorId));
                 return 200;
             }
         }
@@ -45,7 +43,7 @@ public class Neo4jDAO {
     public int insertMovie(String movieId, String name) {
         try {
             Session curSession = this.driver.session();
-            String query = "MATCH(a:movie) WHERE a.id=\"%s\" RETURN a".formatted(movieId);
+            String query = "MATCH(a:movie) WHERE a.movieId=\"%s\" RETURN a".formatted(movieId);
             Result res = curSession.run(query);
             if(res.hasNext()){
                 // movieId already exists
@@ -53,7 +51,7 @@ public class Neo4jDAO {
             }
             else {
                 // insert the Movie
-                curSession.run("Create (a:movie {Name: \"%s\", id: \"%s\"})".formatted(name, movieId));
+                curSession.run("Create (a:movie {name: \"%s\", movieId: \"%s\"})".formatted(name, movieId));
                 return 200;
             }
         }
@@ -66,17 +64,17 @@ public class Neo4jDAO {
         try {
             Session curSession = this.driver.session();
 
-            String query = "MATCH(a:movie) WHERE a.id=\"%s\" RETURN a".formatted(movieId);
+            String query = "MATCH(a:movie) WHERE a.movieId=\"%s\" RETURN a".formatted(movieId);
             Result res1 = curSession.run(query);
             boolean hasMovie = res1.hasNext();
 
-            query = "MATCH(a:actor) WHERE a.id=\"%s\" RETURN a".formatted(actorId);
+            query = "MATCH(a:actor) WHERE a.actorId=\"%s\" RETURN a".formatted(actorId);
             Result res2 = curSession.run(query);
             boolean hasActor = res2.hasNext();
 
             if (hasActor && hasMovie){
                 // check if the
-                query = "MATCH(a:actor)-[r:ACTED_IN]->(m:movie) WHERE a.id=\"%s\" AND m.id=\"%s\" RETURN r".formatted(actorId, movieId);
+                query = "MATCH(a:actor)-[r:ACTED_IN]->(m:movie) WHERE a.actorId=\"%s\" AND m.movieId=\"%s\" RETURN r".formatted(actorId, movieId);
                 Result res3 = curSession.run(query);
                 if (res3.hasNext()){
                     // edge case: relationship already exists
@@ -84,12 +82,12 @@ public class Neo4jDAO {
                 }
 
                 // insert the relationship
-                query = "MATCH(a:actor),(m:movie) WHERE a.id=\"%s\" AND m.id=\"%s\" CREATE (a)-[r:ACTED_IN]->(m)".formatted(actorId, movieId);
+                query = "MATCH(a:actor),(m:movie) WHERE a.actorId=\"%s\" AND m.movieId=\"%s\" CREATE (a)-[r:ACTED_IN]->(m)".formatted(actorId, movieId);
                 curSession.run(query);
                 return 200;
             }
             else {
-                // actorId or movieId invalid
+                // actorId or movieId invald
                 return 404;
             }
 
@@ -102,22 +100,22 @@ public class Neo4jDAO {
     public DBResponse getActor(String actorId){
         try {
             Session curSession = this.driver.session();
-            String query = "MATCH(a:actor) WHERE a.id=\"%s\" RETURN a.Name".formatted(actorId);
+            String query = "MATCH(a:actor) WHERE a.actorId=\"%s\" RETURN a.name".formatted(actorId);
             Result res = curSession.run(query);
-            if(!res.hasNext()){
+            if (!res.hasNext()){
                 // actorId does not exist
                 return new DBResponse("NOT FOUND", 404);
             }
             JSONObject responseObj = new JSONObject();
             responseObj.put("actorId", actorId);
-            responseObj.put("name", res.next().get("a.Name").asString());
+            responseObj.put("name", res.next().get("a.name").asString());
 
-            query = "MATCH (a:actor {id: \"%s\"})-[:ACTED_IN]->(m:movie) RETURN m.id".formatted(actorId);
+            query = "MATCH (a:actor {actorId: \"%s\"})-[r:ACTED_IN]->(m:movie) RETURN m.movieId".formatted(actorId);
             Result res2 = curSession.run(query);
 
             List<String> movieIds = new ArrayList<String>();
             while (res2.hasNext()){
-                String curMovieId = res2.next().get("m.id").asString();
+                String curMovieId = res2.next().get("m.movieId").asString();
                 movieIds.add(curMovieId);
             }
             responseObj.put("movies", new JSONArray(movieIds));
@@ -131,7 +129,7 @@ public class Neo4jDAO {
     public DBResponse getMovie(String movieId){
         try {
             Session curSession = this.driver.session();
-            String query = "MATCH(m:movie) WHERE m.id=\"%s\" RETURN m.Name".formatted(movieId);
+            String query = "MATCH(m:movie) WHERE m.movieId=\"%s\" RETURN m.name".formatted(movieId);
             Result res = curSession.run(query);
             if(!res.hasNext()){
                 // movieId does not exist
@@ -139,14 +137,14 @@ public class Neo4jDAO {
             }
             JSONObject responseObj = new JSONObject();
             responseObj.put("movieId", movieId);
-            responseObj.put("name", res.next().get("m.Name").asString());
+            responseObj.put("name", res.next().get("m.name").asString());
 
-            query = "MATCH (a:actor)-[:ACTED_IN]->(m:movie {id: \"%s\"}) RETURN a.id".formatted(movieId);
+            query = "MATCH (a:actor)-[r:ACTED_IN]->(m:movie {movieId: \"%s\"}) RETURN a.actorId".formatted(movieId);
             Result res2 = curSession.run(query);
 
             List<String> actorIds = new ArrayList<String>();
             while (res2.hasNext()){
-                String curActorId = res2.next().get("a.id").asString();
+                String curActorId = res2.next().get("a.actorId").asString();
                 actorIds.add(curActorId);
             }
             responseObj.put("actors", new JSONArray(actorIds));
@@ -161,21 +159,21 @@ public class Neo4jDAO {
         try {
             Session curSession = this.driver.session();
 
-            String query = "MATCH(a:actor) WHERE a.id=\"%s\" RETURN a.Name".formatted(actorId);
+            String query = "MATCH(a:actor) WHERE a.actorId=\"%s\" RETURN a.name".formatted(actorId);
             Result res = curSession.run(query);
             if(!res.hasNext()){
                 // actorId does not exist
                 return new DBResponse("NOT FOUND", 404);
             }
 
-            query = "MATCH(m:movie) WHERE m.id=\"%s\" RETURN m.Name".formatted(movieId);
+            query = "MATCH(m:movie) WHERE m.movieId=\"%s\" RETURN m.name".formatted(movieId);
             res = curSession.run(query);
             if(!res.hasNext()){
                 // movieId does not exist
                 return new DBResponse("NOT FOUND", 404);
             }
 
-            query = "MATCH (a:actor {id: \"%s\"})-[r:ACTED_IN]->(m:movie {id: \"%s\"}) RETURN r".formatted(actorId, movieId);
+            query = "MATCH (a:actor {actorId: \"%s\"})-[r:ACTED_IN]->(m:movie {movieId: \"%s\"}) RETURN r".formatted(actorId, movieId);
             res = curSession.run(query);
             boolean hasRel = res.hasNext();
 
