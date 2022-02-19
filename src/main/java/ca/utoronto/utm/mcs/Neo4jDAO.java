@@ -35,7 +35,7 @@ public class Neo4jDAO {
             }
             else {
                 // insert the actor
-                curSession.run("Create (a:actor {name: \"%s\", actorId: \"%s\"})".formatted(name, actorId));
+                curSession.run("Create (a:actor {name:\"%s\", actorId:\"%s\"})".formatted(name, actorId));
                 return 200;
             }
         }
@@ -55,7 +55,7 @@ public class Neo4jDAO {
             }
             else {
                 // insert the Movie
-                curSession.run("Create (a:movie {name: \"%s\", movieId: \"%s\"})".formatted(name, movieId));
+                curSession.run("Create (a:movie {name:\"%s\", movieId:\"%s\"})".formatted(name, movieId));
                 return 200;
             }
         }
@@ -114,7 +114,7 @@ public class Neo4jDAO {
             responseObj.put("actorId", actorId);
             responseObj.put("name", res.next().get("a.name").asString());
 
-            query = "MATCH (a:actor {actorId: \"%s\"})-[r:ACTED_IN]->(m:movie) RETURN m.movieId".formatted(actorId);
+            query = "MATCH (a:actor {actorId:\"%s\"})-[r:ACTED_IN]->(m:movie) RETURN m.movieId".formatted(actorId);
             Result res2 = curSession.run(query);
 
             List<String> movieIds = new ArrayList<String>();
@@ -252,10 +252,11 @@ public class Neo4jDAO {
             Iterable<Node> itrNodes= path.nodes();
             for (Node n: itrNodes){
                 if (!n.get("movieId").isNull()){
-                    baconArray.put(n.get("movieId").toString());
+                    // for some reason, "" are also included in this string
+                    baconArray.put(n.get("movieId").toString().replace("\"", ""));
                 }
                 else if (!n.get("actorId").isNull()){
-                    baconArray.put(n.get("actorId").toString());
+                    baconArray.put(n.get("actorId").toString().replace("\"", ""));
                 }
             }
 
