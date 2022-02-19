@@ -186,14 +186,17 @@ public class ReqHandler implements HttpHandler {
                 getMovie(exchange, jsonObject);
             case ("hasRelationship"):
                 hasRelationship(exchange, jsonObject);
-                // TODO: ADD OTHER ENDPOINTS
+            case ("computeBaconNumber"):
+                computeBaconNumber(exchange, jsonObject);
+            case ("computeBaconPath"):
+                computeBaconPath(exchange, jsonObject);
             default:
                 sendResponseCode(exchange, 404, "Not Found");
         }
     }
 
 
-    private void getActor(HttpExchange exchange, JSONObject body) throws IOException {
+    public void getActor(HttpExchange exchange, JSONObject body) throws IOException {
         String actorId;
 
         try {
@@ -208,7 +211,7 @@ public class ReqHandler implements HttpHandler {
         sendResponseCode(exchange, response.code, response.response);
     }
 
-    private void getMovie(HttpExchange exchange, JSONObject body) throws IOException {
+    public void getMovie(HttpExchange exchange, JSONObject body) throws IOException {
         String movieId;
 
         try {
@@ -223,7 +226,7 @@ public class ReqHandler implements HttpHandler {
         sendResponseCode(exchange, response.code, response.response);
     }
 
-    private void hasRelationship(HttpExchange exchange, JSONObject body) throws IOException {
+    public void hasRelationship(HttpExchange exchange, JSONObject body) throws IOException {
         String movieId;
         String actorId;
 
@@ -240,6 +243,36 @@ public class ReqHandler implements HttpHandler {
         sendResponseCode(exchange, response.code, response.response);
     }
 
+    public void computeBaconNumber(HttpExchange exchange, JSONObject body) throws IOException{
+        String kevinActorId = "nm0000102";
+        String actorId;
 
+        try {
+            actorId = body.getString("actorId");
+        }
+        catch (Exception e){
+            sendResponseCode(exchange, 400, "BAD REQUEST");
+            return;
+        }
+
+        DBResponse response = this.neo4jDAO.computeBaconNumber(actorId, kevinActorId);
+        sendResponseCode(exchange, response.code, response.response);
+    }
+
+    public void computeBaconPath(HttpExchange exchange, JSONObject body) throws IOException {
+        String kevinActorId = "nm0000102";
+        String actorId;
+
+        try {
+            actorId = body.getString("actorId");
+        }
+        catch (Exception e){
+            sendResponseCode(exchange, 400, "BAD REQUEST");
+            return;
+        }
+
+        DBResponse response = this.neo4jDAO.computeBaconPath(actorId, kevinActorId);
+        sendResponseCode(exchange, response.code, response.response);
+    }
 
 }
