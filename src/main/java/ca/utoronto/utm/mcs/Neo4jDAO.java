@@ -1,8 +1,12 @@
 package ca.utoronto.utm.mcs;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -188,5 +192,80 @@ public class Neo4jDAO {
             return new DBResponse("INTERNAL SERVER ERROR", 500);
         }
     }
+
+    public DBResponse computeBaconNumber(String startActorId, String targetActorId) {
+        try{
+            JSONObject responseObj = new JSONObject();
+            int pathLen = 0;
+            if (startActorId.equals(targetActorId)){
+                responseObj.put("baconNumber", pathLen);
+                return new DBResponse(responseObj.toString(), 200);
+            }
+
+            // https://stackoverflow.com/questions/33063408/how-can-i-get-shortest-path-cypher-query
+            String query = "MATCH path=shortestPath((a:actor {actorId:\"%s\"})-[r:ACTED_IN*..15]-(b:actor {actorId:\"%s\"})) return path".formatted(startActorId, targetActorId);
+            Session curSession = this.driver.session();
+            Result res = curSession.run(query);
+            if (!res.hasNext()){
+                // either no path or given actors did not exist
+                System.out.println("No path found");
+                return new DBResponse("NOT FOUND", 404);
+            }
+
+            Path path = res.next().get("path").asPath();
+            Iterable<Node> itrNodes= path.nodes();
+            for (Node n: itrNodes){
+                if (!n.get("movieId").isNull()){
+                    pathLen++;
+                }
+            }
+
+            responseObj.put("baconNumber", pathLen);
+            return new DBResponse(responseObj.toString(), 200);
+        }
+        catch (Exception e){
+            return new DBResponse("INTERNAL SERVER ERROR", 500);
+        }
+    }
+
+    public DBResponse computeBaconPath(String startActorId, String targetActorId) {
+        try{
+            JSONObject responseObj = new JSONObject();
+            JSONArray baconArray = new JSONArray();
+            if (startActorId.equals(targetActorId)){
+                baconArray.put(targetActorId);
+                responseObj.put("baconPath", baconArray);
+                return new DBResponse(responseObj.toString(), 200);
+            }
+
+            // https://stackoverflow.com/questions/33063408/how-can-i-get-shortest-path-cypher-query
+            String query = "MATCH path=shortestPath((a:actor {actorId:\"%s\"})-[r:ACTED_IN*..15]-(b:actor {actorId:\"%s\"})) return path".formatted(startActorId, targetActorId);
+            Session curSession = this.driver.session();
+            Result res = curSession.run(query);
+            if (!res.hasNext()){
+                // either no path or given actors did not exist
+                System.out.println("No path found");
+                return new DBResponse("NOT FOUND", 404);
+            }
+
+            Path path = res.next().get("path").asPath();
+            Iterable<Node> itrNodes= path.nodes();
+            for (Node n: itrNodes){
+                if (!n.get("movieId").isNull()){
+                    baconArray.put(n.get("movieId").toString());
+                }
+                else if (!n.get("actorId").isNull()){
+                    baconArray.put(n.get("actorId").toString());
+                }
+            }
+
+            responseObj.put("baconPath", baconArray);
+            return new DBResponse(responseObj.toString(), 200);
+        }
+        catch (Exception e){
+            return new DBResponse("INTERNAL SERVER ERROR", 500);
+        }
+    }
+
 }
 
