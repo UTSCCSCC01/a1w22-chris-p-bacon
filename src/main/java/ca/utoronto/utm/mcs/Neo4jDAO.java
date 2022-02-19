@@ -77,8 +77,8 @@ public class Neo4jDAO {
             boolean hasActor = res2.hasNext();
 
             if (hasActor && hasMovie){
-                // check if the
-                query = "MATCH(a:actor)-[r:ACTED_IN]->(m:movie) WHERE a.actorId=\"%s\" AND m.movieId=\"%s\" RETURN r".formatted(actorId, movieId);
+                // check if the relationship already exists
+                query = "MATCH(a:actor {actorId:\"%s\"})-[r:ACTED_IN]->(m:movie {movieId:\"%s\"}) RETURN r".formatted(actorId, movieId);
                 Result res3 = curSession.run(query);
                 if (res3.hasNext()){
                     // edge case: relationship already exists
@@ -86,7 +86,7 @@ public class Neo4jDAO {
                 }
 
                 // insert the relationship
-                query = "MATCH(a:actor),(m:movie) WHERE a.actorId=\"%s\" AND m.movieId=\"%s\" CREATE (a)-[r:ACTED_IN]->(m)".formatted(actorId, movieId);
+                query = "MATCH(a:actor {actorId: \"%s\"}),(m:movie {movieId: \"%s\"}) CREATE (a)-[r:ACTED_IN]->(m)".formatted(actorId, movieId);
                 curSession.run(query);
                 return 200;
             }
