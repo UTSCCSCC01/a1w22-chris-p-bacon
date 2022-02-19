@@ -1,10 +1,10 @@
 package ca.utoronto.utm.mcs;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
+
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
+
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 
