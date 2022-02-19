@@ -14,8 +14,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-// TODO Please Write Your Tests For CI/CD In This Class. You will see
-// these tests pass/fail on github under github actions.
+
 public class AppTest {
 
     final static String API_URL = "http://localhost:8080";
@@ -32,17 +31,16 @@ public class AppTest {
     }
 
     @Test
-    public void addActor1() throws JSONException, IOException, InterruptedException {
+    public void addActorPass() throws JSONException, IOException, InterruptedException {
         JSONObject confirmReq = new JSONObject()
                 .put("actorId", "100")
                 .put("name", "testActorName");
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addActor", "PUT", confirmReq.toString());
-        HttpResponse<String> confirmRes2 = sendRequest("/api/v1/addActor", "PUT", confirmReq.toString());
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes2.statusCode());
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
     }
 
     @Test
-    public void addActor2() throws JSONException, IOException, InterruptedException {
+    public void addActorFail() throws JSONException, IOException, InterruptedException {
         JSONObject confirmReq = new JSONObject()
                 .put("actorId", "100");
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addActor", "PUT", confirmReq.toString());
@@ -50,17 +48,16 @@ public class AppTest {
     }
 
     @Test
-    public void addMovie1() throws JSONException, IOException, InterruptedException {
+    public void addMoviePass() throws JSONException, IOException, InterruptedException {
         JSONObject confirmReq = new JSONObject()
                 .put("movieId", "100")
                 .put("name", "testMovieName");
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addMovie", "PUT", confirmReq.toString());
-        HttpResponse<String> confirmRes2 = sendRequest("/api/v1/addMovie", "PUT", confirmReq.toString());
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes2.statusCode());
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
     }
 
     @Test
-    public void addMovie2() throws JSONException, IOException, InterruptedException {
+    public void addMovieFail() throws JSONException, IOException, InterruptedException {
         JSONObject confirmReq = new JSONObject()
                 .put("movieId", "100");
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addMovie", "PUT", confirmReq.toString());
@@ -68,29 +65,149 @@ public class AppTest {
     }
 
     @Test
-    public void addRelationship1() throws JSONException, IOException, InterruptedException {
-
+    public void addRelationshipPass() throws JSONException, IOException, InterruptedException {
         JSONObject addActorReq = new JSONObject()
-                .put("actorId", "8787").put("name", "testActor2");
+                .put("actorId", "100").put("name", "testActor2");
         sendRequest("/api/v1/addActor", "PUT", addActorReq.toString());
 
         JSONObject addMovieReq = new JSONObject()
-                .put("movieId", "7878").put("name", "testMovie2");
+                .put("movieId", "200").put("name", "testMovie2");
         sendRequest("/api/v1/addMovie", "PUT", addMovieReq.toString());
 
         JSONObject confirmReq = new JSONObject()
-                .put("movieId", "7878")
-                .put("actorId", "8787");
+                .put("movieId", "100")
+                .put("actorId", "200");
+
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addRelationship", "PUT", confirmReq.toString());
-        HttpResponse<String> confirmRes2 = sendRequest("/api/v1/addRelationship", "PUT", confirmReq.toString());
-        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes2.statusCode());
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
     }
 
     @Test
-    public void addRelationship2() throws JSONException, IOException, InterruptedException {
+    public void addRelationshipFail() throws JSONException, IOException, InterruptedException {
         JSONObject confirmReq = new JSONObject()
-                .put("movieId", "384738");
+                .put("movieId", "100");
         HttpResponse<String> confirmRes = sendRequest("/api/v1/addRelationship", "PUT", confirmReq.toString());
         assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
     }
+
+    @Test
+    public void getActorPass() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorId", "100")
+                .put("name", "testActorName");
+
+        sendRequest("/api/v1/addActor", "PUT", confirmReq.toString());
+
+        confirmReq = new JSONObject().put("actorId", "100");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/getActor", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
+    }
+
+    @Test
+    public void getActorFail() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject().put("actrId", "100");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/getActor", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
+    }
+
+    @Test
+    public void getMoviePass() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("movieId", "100")
+                .put("name", "testMovieName");
+
+        sendRequest("/api/v1/addMovie", "PUT", confirmReq.toString());
+
+        confirmReq = new JSONObject().put("movieId", "100");
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/getMovie", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
+    }
+
+    @Test
+    public void getMovieFail() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject().put("moviieId", "100");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/getMovie", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
+    }
+
+    @Test
+    public void hasRelationshipPass() throws JSONException, IOException, InterruptedException {
+        JSONObject addActorReq = new JSONObject()
+                .put("actorId", "100").put("name", "testActor2");
+        sendRequest("/api/v1/addActor", "PUT", addActorReq.toString());
+
+        JSONObject addMovieReq = new JSONObject()
+                .put("movieId", "200").put("name", "testMovie2");
+        sendRequest("/api/v1/addMovie", "PUT", addMovieReq.toString());
+
+        JSONObject confirmReq = new JSONObject()
+                .put("actorId", "100")
+                .put("movieId", "200");
+
+        sendRequest("/api/v1/addRelationship", "PUT", confirmReq.toString());
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/hasRelationship", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
+    }
+
+    @Test
+    public void hasRelationshipFail() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorId", "100");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/hasRelationship", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
+    }
+
+    @Test
+    public void computeBaconNumberPass() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorId", "nm0000102");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/computeBaconNumber", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
+    }
+
+    @Test
+    public void computeBaconNumberFail() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorid", "nm0000102");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/computeBaconNumber", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
+    }
+
+    @Test
+    public void computeBaconPathPass() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorId", "nm0000102");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/computeBaconPath", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_OK, confirmRes.statusCode());
+    }
+
+    @Test
+    public void computeBaconPathFail() throws JSONException, IOException, InterruptedException {
+        JSONObject confirmReq = new JSONObject()
+                .put("actorid", "nm0000102");
+
+        HttpResponse<String> confirmRes = sendRequest("/api/v1/computeBaconPath", "GET", confirmReq.toString());
+
+        assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, confirmRes.statusCode());
+    }
+
+
+
 }
