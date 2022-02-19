@@ -19,6 +19,7 @@ public class AppTest {
 
     final static String API_URL = "http://localhost:8080";
 
+    // Taken from tutorial code
     private static HttpResponse<String> sendRequest(String endpoint, String method, String reqBody) throws IOException, InterruptedException {
 
         HttpClient client = HttpClient.newHttpClient();
